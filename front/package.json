@@ -1,0 +1,11 @@
+{
+  "name": "weppo-proj-back",
+  "version": "4.2.0",
+  "description": "Multiplayer game server for the WEPPO uni course",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Denys Zinoviev",
+  "license": "ISC"
+}
