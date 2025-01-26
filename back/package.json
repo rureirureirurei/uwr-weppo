@@ -1,0 +1,17 @@
+{
+  "name": "weppo-proj-front",
+  "version": "4.2.0",
+  "description": "Multiplayer game web client for the WEPPO uni course",
+  "main": "server.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Denys Zinoviev",
+  "license": "ISC",
+  "dependencies": {
+    "@types/express": "^5.0.0",
+    "@types/socket.io": "^3.0.1",
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}

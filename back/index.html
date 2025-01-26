@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Socket.IO chat</title>
+  <style>
+    .column {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: row;
+    }
+
+    #input:focus {
+      outline: none;
+    }
+
+    #form>button {
+      background: #333;
+      border: none;
+      padding: 0 1rem;
+      margin: 0.25rem;
+      border-radius: 3px;
+      outline: none;
+      color: #fff;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages>li {
+      padding: 0.5rem 1rem;
+    }
+
+    #messages>li:nth-child(odd) {
+      background: #efefef;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="row">
+    <div class="column" style="flex-grow: 1; align-items: center;">
+      <div>Available rooms</div>
+      <ul id="rooms"></ul>
+
+      <form id="create-room-form" action="" style="max-width: 500px;">
+        <input id="input" autocomplete="off" placeholder="Room Name" /><button>Create Room</button>
+      </form>
+    </div>
+
+    <div class="column" style="flex-grow: 1; align-items: center;">
+      <div>Active Players</div>
+      <ul id="players"></ul>
+    </div>
+  </div>
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  const createRoomForm = document.getElementById('create-room-form');
+  const input = document.getElementById('input');
+  const messages = document.getElementById('messages');
+  const roomsDiv = document.getElementById('rooms');
+  const playersDiv = document.getElementById('players');
+
+  socket.emit('rooms/list', (response) => {
+    console.log(response);
+    response.rooms.forEach(room => {
+      addRoom(room);
+    });
+  })
+
+  function addRoom(room) {
+    const roomDiv = document.createElement('div');
+    const roomName = document.createTextNode(room)
+    roomDiv.appendChild(roomName);
+    roomsDiv.appendChild(roomDiv);
+  }
+
+  function sortDivChildrenById(containerId) {
+  const container = document.getElementById(containerId); // Get the parent container
+  if (!container) {
+    console.warn(`Container with id "${containerId}" not found.`);
+    return;
+  }
+
+  const children = Array.from(container.children); // Convert child elements to an array
+
+  // Sort the elements by their ID attribute
+  children.sort((a, b) => {
+    const idA = a.id.toLowerCase();
+    const idB = b.id.toLowerCase();
+    return idA.localeCompare(idB); // Compare IDs alphabetically
+  });
+
+  // Append the sorted elements back to the container
+  children.forEach(child => container.appendChild(child));
+}
+
+  function addPlayer(player) {
+    const playerDiv = document.createElement('li');
+    playerDiv.id = player;
+    playerDiv.textContent = player;
+    playersDiv.appendChild(playerDiv);
+    // Example usage
+    sortDivChildrenById('players'); // Replace 'rooms' with the ID of your container
+  }
+
+  function delPlayer(player) {
+    const playerDiv = document.getElementById(player);
+    if (playerDiv) {
+      playerDiv.remove()
+    }
+  }
+
+  socket.on('rooms/create', (room) => {
+    addRoom(room);
+  });
+
+  socket.on('players/connected', (player) => {
+    addPlayer(player);
+  });
+
+  socket.on('players/disconnected', (player) => {
+    delPlayer(player);
+  });
+
+  createRoomForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (input.value) {
+      const room = input.value;
+      socket.emit('rooms/create', room);
+      input.value = '';
+    }
+  });
+</script>
+
+</html>
