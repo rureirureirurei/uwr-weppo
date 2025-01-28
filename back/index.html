@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Socket.IO chat</title>
   <style>
+    body {
+      display: flex;
+      justify-content: center;
+    }
+
     .column {
       display: flex;
       flex-direction: column;
@@ -46,8 +51,8 @@
 </head>
 
 <body>
-  <div class="row">
-    <div class="column" style="flex-grow: 1; align-items: center;">
+  <div class="row" style="width: 60%;">
+    <div class="column" style="flex-grow: 1; align-items: center; width: 50%;">
       <div>Available rooms</div>
       <ul id="rooms"></ul>
 
@@ -56,7 +61,7 @@
       </form>
     </div>
 
-    <div class="column" style="flex-grow: 1; align-items: center;">
+    <div class="column" style="flex-grow: 1; align-items: center; width: 50%;">
       <div>Active Players</div>
       <ul id="players"></ul>
     </div>
@@ -88,36 +93,26 @@
   }
 
   function sortDivChildrenById(containerId) {
-  const container = document.getElementById(containerId); // Get the parent container
-  if (!container) {
-    console.warn(`Container with id "${containerId}" not found.`);
-    return;
+    const container = document.getElementById(containerId); // Get the parent container
+    const children = Array.from(container.children); // Convert child elements to an array
+    children.sort((a, b) => {
+      const idA = a.id.toLowerCase();
+      const idB = b.id.toLowerCase();
+      return idA.localeCompare(idB);
+    });
+    children.forEach(child => container.appendChild(child));
   }
-
-  const children = Array.from(container.children); // Convert child elements to an array
-
-  // Sort the elements by their ID attribute
-  children.sort((a, b) => {
-    const idA = a.id.toLowerCase();
-    const idB = b.id.toLowerCase();
-    return idA.localeCompare(idB); // Compare IDs alphabetically
-  });
-
-  // Append the sorted elements back to the container
-  children.forEach(child => container.appendChild(child));
-}
 
   function addPlayer(player) {
     const playerDiv = document.createElement('li');
-    playerDiv.id = player;
-    playerDiv.textContent = player;
+    playerDiv.id = player.id;
+    playerDiv.textContent = player.name;
     playersDiv.appendChild(playerDiv);
-    // Example usage
-    sortDivChildrenById('players'); // Replace 'rooms' with the ID of your container
+    sortDivChildrenById('players');
   }
 
-  function delPlayer(player) {
-    const playerDiv = document.getElementById(player);
+  function delPlayer(playerid) {
+    const playerDiv = document.getElementById(playerid);
     if (playerDiv) {
       playerDiv.remove()
     }
@@ -131,8 +126,8 @@
     addPlayer(player);
   });
 
-  socket.on('players/disconnected', (player) => {
-    delPlayer(player);
+  socket.on('players/disconnected', (playerid) => {
+    delPlayer(playerid);
   });
 
   createRoomForm.addEventListener('submit', (e) => {

@@ -22,3 +22,54 @@ Functional Requirements:
    - Create a new account (provide username/password).
    - Log in to the account.
    - View statistics of completed games.
+
+-------------
+
+Room 
+   Id      : String
+   State   : enum of Preparing, Started, Finished
+   Players : List [ Player ]
+   State   : State 
+
+Player : 
+   Name : String
+   Id   : String 
+
+State  : Bool [][]
+
+-----
+
+Server - ts + express + socket.io 
+All the endpoints are implemented using the socket.io 
+
+The web app has 
+- notifiers that are explicitly called by the client in order to notify the server - the handler implementation is in server
+   user/change-name
+   user/create-room
+   user/leave-room
+- builtin notifiers - the handler implementation is in server
+   connected
+   disconnected
+
+- subscription getters   (when other player does something and the server wants to notify the other players ) 
+  the server should proxy such requests (possibly parsing something) the clients should implement the handling
+   user/joined
+   user/disconnected
+   room/created
+   room/removed
+      
+- more rest-like request response thingies ( initial data load whenever the player joins, or room create )
+   rooms/get-list
+   user/get-list
+- the game actions 
+   room/started
+   room/finished
+   room/move
+   
+Front - spa in vue 
+
+Pages : 
+
+/ (the main page - list of rooms, list of players , Change nickname, Create room button)
+/room/x
+on the left - the game plane , on the right - list of players in the room

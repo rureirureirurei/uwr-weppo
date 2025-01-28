@@ -12,6 +12,7 @@
     "@types/express": "^5.0.0",
     "@types/socket.io": "^3.0.1",
     "express": "^4.21.2",
+    "node-petname": "^1.0.1",
     "socket.io": "^4.8.1"
   }
 }
