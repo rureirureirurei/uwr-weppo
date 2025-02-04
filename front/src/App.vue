@@ -17,6 +17,14 @@ const currentRoom = computed(() => rooms.value.find(r => r.players.some(p => p.i
 socket.on("rooms/update", (updatedRooms: Room[])       => (rooms.value = updatedRooms));
 socket.on("players/update", (updatedPlayers: Player[]) => (players.value = updatedPlayers));
 
+const createRoom = ()               => socket.emit("rooms/create");
+const joinRoom   = (roomId: string) => socket.emit("rooms/join", roomId);
+const leaveRoom  = ()               => socket.emit("rooms/leave");
+const makeMove   = (index: number)  => {
+  if (currentRoom.value && you.value?.symbol === currentRoom.value.currentTurn) {
+    socket.emit("game/move", { roomId: currentRoom.value.id, index });
+  }
+}
 
 </script>
 
