@@ -25,26 +25,24 @@ type Room = {
 const rooms: Room[] = [];
 let players: Player[] = [];
 
-function init(socket) {
+function init(socket): Player {
   const player = { id: socket.id, name: petname(2) };
   players.push(player);
   io.emit("players/update", players);
   io.emit("rooms/update", rooms);
+  return player;
 }
 
 io.on("connection", (socket) => {
-  init(socket);
+  const player = init(socket);
 
   socket.on("players/rename", (n) => {
-    console.log(n);
-    const player = players.find(p => p.id === socket.id);
-    if (player) player.name = n;
+    player.name = n;
     io.emit("players/update", players);
   })
 
   socket.on("rooms/create", () => {
-    const player = players.find(p => p.id === socket.id);
-    if (!player || player.room) return;
+    if (player.room) return;
   
     const room: Room = {
       id: `${player.name}'s Room`,
@@ -62,9 +60,8 @@ io.on("connection", (socket) => {
 
   socket.on("rooms/join", (roomId) => {
     const room = rooms.find(r => r.id === roomId);
-    const player = players.find(p => p.id === socket.id);
 
-    if (!room || !player || room.status === 'finished') return;
+    if (!room || room.status === 'finished') return;
     if (player.room || room.players.length >= 2) return;
 
     player.room = roomId;
@@ -85,8 +82,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("rooms/leave", () => {
-    const player = players.find(p => p.id === socket.id);
-    if (!player || !player.room) return;
+    if (!player.room) return;
 
     const room = rooms.find(r => r.id === player.room);
     if (room) {
@@ -105,9 +101,8 @@ io.on("connection", (socket) => {
 
   socket.on("game/move", ({ id, cell }) => {
     const room = rooms.find(r => r.id === id);
-    const player = players.find(p => p.id === socket.id);
 
-    if (!room || !player || room.status !== "active" || player.symbol !== room.currentTurn || room.state[cell] !== null) return;
+    if (!room || room.status !== "active" || player.symbol !== room.currentTurn || room.state[cell] !== null) return;
 
     room.state[cell] = player.symbol;
     room.currentTurn = room.currentTurn === "X" ? "O" : "X";
@@ -117,17 +112,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    const player = players.find(p => p.id === socket.id);
-    if (player) {
-      if (player.room) {
-        const room = rooms.find(r => r.id === player.room);
-        if (room) {
-          room.players = room.players.filter(p => p.id !== player.id);
-          if (room.players.length === 0) {
-            rooms.splice(rooms.indexOf(room), 1);
-          } else {
-            room.status = "preparing";
-          }
+    if (player.room) {
+      const room = rooms.find(r => r.id === player.room);
+      if (room) {
+        room.players = room.players.filter(p => p.id !== player.id);
+        if (room.players.length === 0) {
+          rooms.splice(rooms.indexOf(room), 1);
         }
       }
       players = players.filter(p => p.id !== socket.id);
