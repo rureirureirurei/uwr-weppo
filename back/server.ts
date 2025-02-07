@@ -35,10 +35,10 @@ function init(socket) {
 io.on("connection", (socket) => {
   init(socket);
 
-  socket.on("players/rename", (newName) => {
-    console.log(newName);
+  socket.on("players/rename", (n) => {
+    console.log(n);
     const player = players.find(p => p.id === socket.id);
-    if (player) player.name = newName;
+    if (player) player.name = n;
     io.emit("players/update", players);
   })
 

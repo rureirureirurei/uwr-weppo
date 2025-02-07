@@ -18,13 +18,12 @@ const currentRoom = computed(() => rooms.value.find(r => r.players.some(p => p.i
 socket.on("rooms/update",   (updatedRooms: Room[])     => (rooms.value   = updatedRooms));
 socket.on("players/update", (updatedPlayers: Player[]) => (players.value = updatedPlayers));
 
-const e = socket.emit;
 
-const createRoom = ()             => e("rooms/create");
-const joinRoom   = (id: string)   => e("rooms/join", id);
-const leaveRoom  = ()             => e("rooms/leave");
-const makeMove   = (cell: number) => fold (currentRoom.value, (({ id }) => e("game/move", { id, cell })))
-const rename     = ()             => fold (window.prompt('New name'), (n) => e("players/rename", n))
+const createRoom = ()             => socket.emit("rooms/create");
+const joinRoom   = (id: string)   => socket.emit("rooms/join", id);
+const leaveRoom  = ()             => socket.emit("rooms/leave");
+const makeMove   = (cell: number) => fold (currentRoom.value, (({ id }) => socket.emit("game/move", { id, cell })))
+const rename     = ()             => fold (window.prompt('New name'), (n) => socket.emit("players/rename", n))
 
 </script>
 
