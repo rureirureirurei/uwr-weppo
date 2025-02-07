@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
     if (!player || player.room) return;
   
     const room: Room = {
-      id: `${petname(2)}'s Room`,
+      id: `${player.name}'s Room`,
       players: [player],
       state: Array(9).fill(null),
       status: "preparing",
@@ -49,6 +49,7 @@ io.on("connection", (socket) => {
     };
   
     player.room = room.id;
+    player.symbol = 'X';
     rooms.push(room);
     io.emit("rooms/update", rooms);
     io.emit("players/update", players);
@@ -90,6 +91,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("game/move", ({ roomId, index }) => {
+    console.log(roomId, index);
     const room = rooms.find(r => r.id === roomId);
     const player = players.find(p => p.id === socket.id);
 
