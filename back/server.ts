@@ -61,7 +61,7 @@ io.on("connection", (socket) => {
   socket.on("rooms/join", (roomId) => {
     const room = rooms.find(r => r.id === roomId);
 
-    if (!room || room.status === 'finished') return;
+    if (!room || room.status !== 'preparing') return;
     if (player.room || room.players.length >= 2) return;
 
     player.room = roomId;
@@ -75,7 +75,6 @@ io.on("connection", (socket) => {
         player1.symbol = 'X';
         player2.symbol = 'O';
       }
-      // TODO Assign symbols to both players.
     }
     io.emit("rooms/update", rooms);
     io.emit("players/update", players);
@@ -120,10 +119,10 @@ io.on("connection", (socket) => {
           rooms.splice(rooms.indexOf(room), 1);
         }
       }
-      players = players.filter(p => p.id !== socket.id);
-      io.emit("rooms/update", rooms);
-      io.emit("players/update", players);
     }
+    players = players.filter(p => p.id !== socket.id);
+    io.emit("rooms/update", rooms);
+    io.emit("players/update", players);
   });
 });
 

@@ -35,7 +35,7 @@ const rename     = ()             => fold (window.prompt('New name'), (n) => soc
       <div style="width: 50%;">
         <h3>
           All Players 
-          <button v-if="you?.id" @click="rename"> Rename </button>
+          <button @click="rename"> Rename </button>
         </h3>
         <ul>
           <li v-for="player in players" :key="player.id">
