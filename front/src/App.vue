@@ -4,7 +4,7 @@ import { computed, ref, type Ref } from "vue";
 import board from "./Board.vue"
 
 type Player = { id: string; name: string; symbol?: "X" | "O"; room?: string };
-type Room = { id: string; players: Player[]; state: ("X" | "O" | null)[]; status: string; currentTurn: "X" | "O" };
+type Room   = { id: string; players: Player[]; state: ("X" | "O" | null)[]; status: string; currentTurn: "X" | "O" };
 
 const socket = io("http://127.0.0.1:3000");
 
@@ -50,7 +50,7 @@ const makeMove   = (index: number)  => {
         <ul>
           <li v-for="room in rooms" :key="room.id">
             {{ room.id }} ({{ room.players.length }}/2)
-            <button v-if="!currentRoom && room.players.length < 2" @click="joinRoom(room.id)"> Join </button>
+            <button v-if="!currentRoom && room.players.length < 2 && room.status === 'preparing' " @click="joinRoom(room.id)"> Join </button>
           </li>
         </ul>
       </div>
@@ -58,7 +58,7 @@ const makeMove   = (index: number)  => {
 
     <div v-if="currentRoom">
       <h3>You are in the room: {{ currentRoom.id }}</h3>
-      <p>Players: {{ currentRoom.players.map(p => p.name + ' ' + p.symbol).join(", ") }}</p>
+      <p>Players: {{ currentRoom.players.map(p => p.name).join(", ") }}</p>
       <p>Status: {{ currentRoom.status }}</p>
       <button v-if="currentRoom.status !== 'active'" @click="leaveRoom">Leave Room</button>
 

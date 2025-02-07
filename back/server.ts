@@ -29,12 +29,11 @@ function init(socket) {
   const player = { id: socket.id, name: petname(2) };
   players.push(player);
   io.emit("players/update", players);
+  io.emit("rooms/update", rooms);
 }
 
 io.on("connection", (socket) => {
   init(socket);
-
-  socket.on("rooms/list", (callback) => callback(rooms));
 
   socket.on("rooms/create", () => {
     const player = players.find(p => p.id === socket.id);
@@ -49,7 +48,6 @@ io.on("connection", (socket) => {
     };
   
     player.room = room.id;
-    player.symbol = 'X';
     rooms.push(room);
     io.emit("rooms/update", rooms);
     io.emit("players/update", players);
@@ -59,14 +57,22 @@ io.on("connection", (socket) => {
     const room = rooms.find(r => r.id === roomId);
     const player = players.find(p => p.id === socket.id);
 
-    if (!room || !player) return;
-    if (player.room || room.players.length >= 2) return; // Prevent double joining/full rooms
+    if (!room || !player || room.status === 'finished') return;
+    if (player.room || room.players.length >= 2) return;
 
     player.room = roomId;
-    player.symbol = room.players.length === 0 ? "X" : "O";
     room.players.push(player);
 
-    if (room.players.length === 2) room.status = "active";
+    if (room.players.length === 2) {
+      room.status = "active";
+      const player1 = players.find(p => p.id === room.players[0].id); 
+      const player2 = players.find(p => p.id === room.players[1].id); 
+      if (player1 && player2) {
+        player1.symbol = 'X';
+        player2.symbol = 'O';
+      }
+      // TODO Assign symbols to both players.
+    }
     io.emit("rooms/update", rooms);
     io.emit("players/update", players);
   });
@@ -81,7 +87,7 @@ io.on("connection", (socket) => {
       if (room.players.length === 0) {
         rooms.splice(rooms.indexOf(room), 1);
       } else {
-        room.status = "preparing";
+        if (room.status === 'active') room.status = "preparing";
       }
     }
 
@@ -91,7 +97,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("game/move", ({ roomId, index }) => {
-    console.log(roomId, index);
     const room = rooms.find(r => r.id === roomId);
     const player = players.find(p => p.id === socket.id);
 
