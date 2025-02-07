@@ -2,6 +2,7 @@
 import { io } from "socket.io-client";
 import { computed, ref, type Ref } from "vue";
 import board from "./Board.vue"
+import { fold } from "./utils.ts"
 
 type Player = { id: string; name: string; symbol?: "X" | "O"; room?: string };
 type Room   = { id: string; players: Player[]; state: ("X" | "O" | null)[]; status: string; currentTurn: "X" | "O" };
@@ -17,14 +18,13 @@ const currentRoom = computed(() => rooms.value.find(r => r.players.some(p => p.i
 socket.on("rooms/update",   (updatedRooms: Room[])     => (rooms.value   = updatedRooms));
 socket.on("players/update", (updatedPlayers: Player[]) => (players.value = updatedPlayers));
 
-const createRoom = ()               => socket.emit("rooms/create");
-const joinRoom   = (roomId: string) => socket.emit("rooms/join", roomId);
-const leaveRoom  = ()               => socket.emit("rooms/leave");
-const makeMove   = (index: number)  => {
-  if (currentRoom.value && you.value?.symbol === currentRoom.value.currentTurn) {
-    socket.emit("game/move", { roomId: currentRoom.value.id, index });
-  }
-}
+const e = socket.emit;
+
+const createRoom = ()             => e("rooms/create");
+const joinRoom   = (id: string)   => e("rooms/join", id);
+const leaveRoom  = ()             => e("rooms/leave");
+const makeMove   = (cell: number) => fold (currentRoom.value, (({ id }) => e("game/move", { id, cell })))
+const rename     = ()             => fold (window.prompt('New name'), (n) => e("players/rename", n))
 
 </script>
 
@@ -33,8 +33,11 @@ const makeMove   = (index: number)  => {
     <h1>Multiplayer Tic-Tac-Toe</h1>
 
     <div style="display: flex;">
-      <div>
-        <h3>All Players</h3>
+      <div style="width: 50%;">
+        <h3>
+          All Players 
+          <button v-if="you?.id" @click="rename"> Rename </button>
+        </h3>
         <ul>
           <li v-for="player in players" :key="player.id">
             {{ player.name }}{{ player.id === you?.id ? " (You)" : "" }}
@@ -42,7 +45,7 @@ const makeMove   = (index: number)  => {
         </ul>
       </div>
 
-      <div>
+      <div style="width: 50%;">
         <h3> 
           All Rooms 
           <button v-if="!currentRoom" @click="createRoom"> Create Room </button>

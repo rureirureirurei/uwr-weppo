@@ -35,6 +35,13 @@ function init(socket) {
 io.on("connection", (socket) => {
   init(socket);
 
+  socket.on("players/rename", (newName) => {
+    console.log(newName);
+    const player = players.find(p => p.id === socket.id);
+    if (player) player.name = newName;
+    io.emit("players/update", players);
+  })
+
   socket.on("rooms/create", () => {
     const player = players.find(p => p.id === socket.id);
     if (!player || player.room) return;
@@ -96,13 +103,13 @@ io.on("connection", (socket) => {
     io.emit("players/update", players);
   });
 
-  socket.on("game/move", ({ roomId, index }) => {
-    const room = rooms.find(r => r.id === roomId);
+  socket.on("game/move", ({ id, cell }) => {
+    const room = rooms.find(r => r.id === id);
     const player = players.find(p => p.id === socket.id);
 
-    if (!room || !player || room.status !== "active" || player.symbol !== room.currentTurn || room.state[index] !== null) return;
+    if (!room || !player || room.status !== "active" || player.symbol !== room.currentTurn || room.state[cell] !== null) return;
 
-    room.state[index] = player.symbol;
+    room.state[cell] = player.symbol;
     room.currentTurn = room.currentTurn === "X" ? "O" : "X";
 
     if (checkWinner(room.state)) room.status = "finished";
